@@ -8,6 +8,12 @@ services:
       - "3307:3306"
     volumes:
       - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_PASSWORD:-agrosense_dev}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
 
   backend:
     build: ./agrosense-backend
@@ -15,7 +21,8 @@ services:
       - "8001:8001"
     env_file: ./agrosense-backend/.env
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
     command: sh -c "python migrate_db.py && uvicorn app:app --host 0.0.0.0 --port 8001 --reload"
 
   frontend:

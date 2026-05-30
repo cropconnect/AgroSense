@@ -1,3 +1,4 @@
+import json
 import logging
 
 from fastapi import APIRouter, Request
@@ -14,7 +15,9 @@ logger = logging.getLogger(__name__)
 def system_context(sensor_data, weather_data, location):
     return (
         "You are AgroSense AI, a climate-aware agricultural advisor. "
-        f"Current sensor readings: {sensor_data}. Current weather: {weather_data}. Location: {location}. "
+        f"Current sensor readings: {json.dumps(sensor_data)}. "
+        f"Current weather: {json.dumps(weather_data)}. "
+        f"Location: {location}. "
         "Focus on water conservation, climate adaptation, and sustainable farming practices."
     )
 

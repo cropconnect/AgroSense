@@ -15,8 +15,18 @@ const metrics = [
 ];
 
 function SensorsContent() {
-  const { latest, history, loading } = useSensors(24);
+  const { latest, history, loading, refetch } = useSensors(24);
   const [selectedMetric, setSelectedMetric] = useState('soil_moisture');
+
+  useEffect(() => {
+    const id = setInterval(refetch, 30000);
+    return () => clearInterval(id);
+  }, [refetch]);
+
+  useEffect(() => {
+    document.addEventListener('agrosense:sensors-refresh', refetch);
+    return () => document.removeEventListener('agrosense:sensors-refresh', refetch);
+  }, [refetch]);
 
   return (
     <>
@@ -49,14 +59,6 @@ function SensorsContent() {
 }
 
 export default function Sensors() {
-  const [refresh, setRefresh] = useState(0);
-  const forceRefresh = () => setRefresh(value => value + 1);
-
-  useEffect(() => {
-    const id = setInterval(forceRefresh, 30000);
-    return () => clearInterval(id);
-  }, []);
-
   return (
     <div className="page space-y-5">
       <div className="hero-banner" style={{ padding: '20px 24px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 16, flexWrap: 'wrap' }}>
@@ -68,11 +70,11 @@ export default function Sensors() {
           <span className="badge badge-green" style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
             <span className="pulse-dot" /> Live
           </span>
-          <button className="btn btn-ghost" onClick={forceRefresh}><RefreshCw size={16} /> Refresh</button>
+          <button className="btn btn-ghost" onClick={() => document.dispatchEvent(new Event('agrosense:sensors-refresh'))}><RefreshCw size={16} /> Refresh</button>
         </div>
       </div>
 
-      <SensorsContent key={refresh} />
+      <SensorsContent />
     </div>
   );
 }

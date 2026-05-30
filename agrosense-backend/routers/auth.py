@@ -8,6 +8,7 @@ from models import ForgotPasswordIn, LoginIn, ProfileIn, ResetPasswordIn, Signup
 from services.auth_service import clear_auth_cookie, find_user_by_email, get_fresh_user, hash_password, set_auth_cookie, user_from_row, verify_password
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+ALLOWED_PROFILE_KEYS = {"name", "phone", "state", "location", "district", "land_size", "sensor_device_id"}
 
 
 @router.post("/signup")
@@ -56,7 +57,17 @@ def login(payload: LoginIn, response: Response):
     row = find_user_by_email(payload.email)
     if not row or not verify_password(payload.password, row[2]):
         raise HTTPException(status_code=401, detail="Invalid email or password")
-    user = user_from_row((row[0], row[1], row[3], row[4], row[5], row[6], row[7], row[8], row[9]))
+    user = {
+        "id": row[0],
+        "email": row[1],
+        "name": row[3],
+        "phone": row[4],
+        "state": row[5],
+        "location": row[6],
+        "district": row[7],
+        "land_size": row[8],
+        "sensor_device_id": row[9],
+    }
     set_auth_cookie(response, user)
     return {"id": row[0], "email": row[1], "name": row[3]}
 
@@ -75,7 +86,7 @@ def me(request: Request):
 @router.put("/profile")
 def update_profile(payload: ProfileIn, request: Request, response: Response):
     user = get_fresh_user(request)
-    updates = payload.model_dump(exclude_unset=True)
+    updates = {k: v for k, v in payload.model_dump(exclude_unset=True).items() if k in ALLOWED_PROFILE_KEYS}
     if not updates:
         return user
     columns = ", ".join(f"{key}=%s" for key in updates)

@@ -20,13 +20,13 @@ def usage_history(request: Request, days: int = Query(default=30, ge=1, le=365))
     with get_connection() as conn:
         cur = conn.cursor(dictionary=True)
         cur.execute(
-            """
+            f"""
             SELECT session_date date, SUM(liters_used) liters_used, SUM(liters_saved) liters_saved
             FROM water_usage_log
-            WHERE user_id=%s AND session_date >= CURDATE() - INTERVAL %s DAY
+            WHERE user_id=%s AND session_date >= CURDATE() - INTERVAL {days} DAY
             GROUP BY session_date ORDER BY session_date
             """,
-            (user["id"], days),
+            (user["id"],),
         )
         rows = cur.fetchall()
     return rows or [{**item, "is_demo": True} for item in demo_daily(days)]

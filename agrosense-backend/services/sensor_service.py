@@ -51,7 +51,7 @@ def latest_for_device(device_id: str | None) -> dict[str, Any]:
         cur = conn.cursor(dictionary=True)
         cur.execute("SELECT * FROM sensor_readings WHERE device_id=%s ORDER BY recorded_at DESC LIMIT 1", (device_id,))
         row = cur.fetchone()
-        return row or {**DEMO_READING, "device_id": device_id}
+        return row or {**DEMO_READING, "device_id": device_id, "is_demo": True}
 
 
 def history_for_device(device_id: str | None, hours: int) -> list[dict[str, Any]]:
