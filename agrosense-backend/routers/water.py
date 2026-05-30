@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Query, Request
 
+from db.connections import get_connection
 from models import WaterSessionIn
 from services.auth_service import get_current_user
 from services.water_service import demo_daily, log_pump_session, water_summary
@@ -15,8 +16,20 @@ def summary(request: Request):
 
 @router.get("/usage-history")
 def usage_history(request: Request, days: int = Query(default=30, ge=1, le=365)):
-    get_current_user(request)
-    return demo_daily(days)
+    user = get_current_user(request)
+    with get_connection() as conn:
+        cur = conn.cursor(dictionary=True)
+        cur.execute(
+            """
+            SELECT session_date date, SUM(liters_used) liters_used, SUM(liters_saved) liters_saved
+            FROM water_usage_log
+            WHERE user_id=%s AND session_date >= CURDATE() - INTERVAL %s DAY
+            GROUP BY session_date ORDER BY session_date
+            """,
+            (user["id"], days),
+        )
+        rows = cur.fetchall()
+    return rows or [{**item, "is_demo": True} for item in demo_daily(days)]
 
 
 @router.post("/log-session")

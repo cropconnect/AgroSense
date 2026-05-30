@@ -17,6 +17,18 @@ CREATE TABLE IF NOT EXISTS users (
   UNIQUE KEY uq_users_device (sensor_device_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS password_reset_tokens (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id BIGINT UNSIGNED NOT NULL,
+  token VARCHAR(64) NOT NULL,
+  expires_at TIMESTAMP NOT NULL,
+  used TINYINT(1) NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_password_reset_token (token),
+  INDEX idx_password_reset_user (user_id, used, expires_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS devices (
   id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   device_id VARCHAR(80) NOT NULL UNIQUE,

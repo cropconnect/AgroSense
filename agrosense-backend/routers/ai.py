@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Request
 
 from config import settings
@@ -6,6 +8,7 @@ from services.ai_service import ask_gemini, parse_json_response
 from services.rate_limit import enforce_rate_limit
 
 router = APIRouter(prefix="/api/ai", tags=["ai"])
+logger = logging.getLogger(__name__)
 
 
 def system_context(sensor_data, weather_data, location):
@@ -55,11 +58,23 @@ def drought_risk(payload: DroughtRiskIn, request: Request):
 @router.post("/crop-recommend")
 def crop_recommend(payload: CropRecommendIn, request: Request):
     enforce_rate_limit(request, "ai", 10, 60)
-    text = ask_gemini(f"{system_context(payload.sensor_data, {}, payload.location)} Recommend crops for {payload.season}.")
-    return {
+    prompt = (
+        f"{system_context(payload.sensor_data, {}, payload.location)} "
+        f"Recommend crops for {payload.season}. "
+        "Return only valid JSON with this exact structure: "
+        '{"summary": "...", "crops": [{"name": "...", "water_requirement_mm": 0, '
+        '"climate_suitability_score": 0, "planting_advice": "..."}]}. '
+        "Base recommendations on the provided soil data, location, and season."
+    )
+    text = ask_gemini(prompt)
+    fallback = {
         "summary": text,
         "crops": [
             {"name": "Millet", "water_requirement_mm": 350, "climate_suitability_score": 88, "planting_advice": "Strong fit for low-water seasons."},
             {"name": "Pigeon pea", "water_requirement_mm": 450, "climate_suitability_score": 81, "planting_advice": "Use wider spacing and moisture checks."},
         ],
     }
+    result = parse_json_response(text, fallback)
+    if result is fallback:
+        logger.warning("Failed to parse Gemini crop recommendation JSON; using fallback crops")
+    return result

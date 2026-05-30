@@ -1,3 +1,4 @@
+import json
 from datetime import datetime, timedelta
 from typing import Any
 
@@ -38,14 +39,14 @@ def insert_reading(data: dict[str, Any]) -> None:
                 data.get("nitrogen"),
                 data.get("phosphorus"),
                 data.get("potassium"),
-                str(data),
+                json.dumps(data),
             ),
         )
 
 
 def latest_for_device(device_id: str | None) -> dict[str, Any]:
     if not device_id:
-        return DEMO_READING
+        return {**DEMO_READING, "is_demo": True}
     with get_connection() as conn:
         cur = conn.cursor(dictionary=True)
         cur.execute("SELECT * FROM sensor_readings WHERE device_id=%s ORDER BY recorded_at DESC LIMIT 1", (device_id,))
@@ -64,6 +65,7 @@ def history_for_device(device_id: str | None, hours: int) -> list[dict[str, Any]
                 "temperature": 28 + (i % 6),
                 "humidity": 58 + (i % 11),
                 "ph": 6.3 + (i % 5) / 10,
+                "is_demo": True,
             }
             for i in range(min(hours, 48), 0, -2)
         ]

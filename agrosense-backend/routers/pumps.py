@@ -1,3 +1,5 @@
+import json
+
 from fastapi import APIRouter, Request
 
 from db.connections import get_connection
@@ -86,7 +88,7 @@ def add_timer(pump_id: str, payload: TimerIn, request: Request):
             VALUES (%s,%s,%s,%s,%s,%s,%s)
             ON DUPLICATE KEY UPDATE start_time=VALUES(start_time),duration_minutes=VALUES(duration_minutes),days=VALUES(days),active=VALUES(active)
             """,
-            (user["id"], pump_id, payload.timer_key, payload.start_time, payload.duration_minutes, str(payload.days), payload.active),
+            (user["id"], pump_id, payload.timer_key, payload.start_time, payload.duration_minutes, json.dumps(payload.days), payload.active),
         )
     return {"ok": True}
 
