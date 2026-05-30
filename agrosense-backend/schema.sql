@@ -1,0 +1,149 @@
+CREATE DATABASE IF NOT EXISTS agrosense CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+USE agrosense;
+
+CREATE TABLE IF NOT EXISTS users (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  email VARCHAR(255) NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  name VARCHAR(512) NULL,
+  phone VARCHAR(512) NULL,
+  state VARCHAR(512) NULL,
+  location TEXT NULL,
+  district VARCHAR(512) NULL,
+  land_size DECIMAL(10,2) NULL,
+  sensor_device_id VARCHAR(80) NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_users_email (email),
+  UNIQUE KEY uq_users_device (sensor_device_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS devices (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  device_id VARCHAR(80) NOT NULL UNIQUE,
+  display_name VARCHAR(120) NULL,
+  location VARCHAR(160) NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS sensor_readings (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  device_id VARCHAR(80) NOT NULL,
+  soil_moisture DECIMAL(6,2) NULL,
+  humidity DECIMAL(6,2) NULL,
+  temperature DECIMAL(6,2) NULL,
+  ph DECIMAL(5,2) NULL,
+  nitrogen DECIMAL(8,2) NULL,
+  phosphorus DECIMAL(8,2) NULL,
+  potassium DECIMAL(8,2) NULL,
+  raw_payload JSON NULL,
+  recorded_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  INDEX idx_device_time (device_id, recorded_at),
+  CONSTRAINT fk_sensor_device FOREIGN KEY (device_id) REFERENCES devices(device_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS pump_states (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id BIGINT UNSIGNED NULL,
+  device_id VARCHAR(80) NULL,
+  pump_id VARCHAR(40) NOT NULL,
+  is_on TINYINT(1) NOT NULL DEFAULT 0,
+  runtime_minutes INT UNSIGNED NOT NULL DEFAULT 0,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  INDEX idx_pump_user (user_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS current_pump_state (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id BIGINT UNSIGNED NULL,
+  device_id VARCHAR(80) NULL,
+  pump_id VARCHAR(40) NOT NULL,
+  is_on TINYINT(1) NOT NULL DEFAULT 0,
+  runtime_minutes INT UNSIGNED NOT NULL DEFAULT 0,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_current_pump (user_id, pump_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS pump_timers (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id BIGINT UNSIGNED NULL,
+  device_id VARCHAR(80) NULL,
+  pump_id VARCHAR(40) NOT NULL,
+  timer_key VARCHAR(80) NOT NULL,
+  start_time VARCHAR(10) NOT NULL,
+  duration_minutes INT UNSIGNED NOT NULL,
+  days JSON NULL,
+  active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_timer (user_id, pump_id, timer_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS chat_messages (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id BIGINT UNSIGNED NULL,
+  message_type VARCHAR(20) NOT NULL,
+  text TEXT NOT NULL,
+  sensor_data JSON NULL,
+  location VARCHAR(160) NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  INDEX idx_chat_user (user_id, created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS water_usage_log (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id BIGINT UNSIGNED NULL,
+  device_id VARCHAR(80) NULL,
+  pump_id VARCHAR(40) NOT NULL,
+  liters_used DECIMAL(10,2) NOT NULL DEFAULT 0,
+  liters_saved DECIMAL(10,2) NOT NULL DEFAULT 0,
+  soil_moisture_before DECIMAL(6,2) NULL,
+  soil_moisture_after DECIMAL(6,2) NULL,
+  runtime_minutes INT UNSIGNED NOT NULL DEFAULT 0,
+  irrigation_method VARCHAR(40) NOT NULL DEFAULT 'smart',
+  session_date DATE NOT NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  INDEX idx_water_user_date (user_id, session_date)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS alert_rules (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id BIGINT UNSIGNED NOT NULL,
+  metric VARCHAR(40) NOT NULL,
+  operator VARCHAR(10) NOT NULL,
+  threshold DECIMAL(10,2) NOT NULL,
+  alert_type VARCHAR(40) NOT NULL DEFAULT 'warning',
+  message_template TEXT NULL,
+  active TINYINT(1) NOT NULL DEFAULT 1,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  INDEX idx_alert_user (user_id, active)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS alert_events (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  user_id BIGINT UNSIGNED NULL,
+  rule_id BIGINT UNSIGNED NULL,
+  metric VARCHAR(40) NOT NULL,
+  value DECIMAL(10,2) NOT NULL,
+  message TEXT NOT NULL,
+  severity VARCHAR(20) NOT NULL DEFAULT 'warning',
+  acknowledged TINYINT(1) NOT NULL DEFAULT 0,
+  fired_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  INDEX idx_event_user (user_id, fired_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS public_rate_limits (
+  id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  bucket VARCHAR(80) NOT NULL,
+  client_host VARCHAR(255) NOT NULL,
+  requested_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (id),
+  INDEX idx_rate_bucket (bucket, client_host, requested_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

@@ -1,0 +1,30 @@
+services:
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASSWORD:-agrosense_dev}
+      MYSQL_DATABASE: agrosense
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  backend:
+    build: ./agrosense-backend
+    ports:
+      - "8001:8001"
+    env_file: ./agrosense-backend/.env
+    depends_on:
+      - mysql
+    command: sh -c "python migrate_db.py && uvicorn app:app --host 0.0.0.0 --port 8001 --reload"
+
+  frontend:
+    build: ./agrosense-frontend
+    ports:
+      - "3000:3000"
+    env_file: ./agrosense-frontend/.env
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:

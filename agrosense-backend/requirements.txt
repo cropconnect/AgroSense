@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+mysql-connector-python
+python-jose[cryptography]
+passlib[bcrypt]
+bcrypt<4
+google-generativeai
+pydantic-settings
+httpx
+python-multipart
