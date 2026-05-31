@@ -33,9 +33,13 @@ export default function Landing() {
                 <Link to="/signup" className="btn btn-primary" style={{ fontSize: 15, padding: '0 22px', minHeight: 46 }}>
                   Get Started Free <ArrowRight size={17} />
                 </Link>
-                <Link to="/signup" className="btn btn-ghost" style={{ fontSize: 15, padding: '0 22px', minHeight: 46 }}>
+                <button
+                  className="btn btn-ghost"
+                  style={{ fontSize: 15, padding: '0 22px', minHeight: 46 }}
+                  onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
+                >
                   See How It Works
-                </Link>
+                </button>
               </div>
               <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
                 {['No hardware subscription', 'Works with ESP32', 'Open API'].map(f => (
@@ -112,7 +116,7 @@ export default function Landing() {
       </section>
 
       <section className="page" style={{ paddingTop: 0 }}>
-        <p className="label" style={{ textAlign: 'center', marginBottom: 28 }}>How it works</p>
+        <p id="how-it-works" className="label" style={{ textAlign: 'center', marginBottom: 28 }}>How it works</p>
         <div className="grid gap-4 md:grid-cols-3">
           {[
             ['01', 'Connect ESP32', 'Mount your soil moisture, temperature and humidity sensors. Register your device ID in AgroSense settings.'],

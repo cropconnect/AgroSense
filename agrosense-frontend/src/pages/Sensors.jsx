@@ -4,19 +4,33 @@ import SensorCard from '../components/SensorCard.jsx';
 import { SensorChart } from '../components/SensorChart.jsx';
 import { useSensors } from '../hooks/useSensors.js';
 
-const metrics = [
-  ['soil_moisture', 'Soil Moisture', '%', 'green'],
-  ['temperature', 'Temperature', '°C', 'warn'],
-  ['humidity', 'Humidity', '%', 'water'],
-  ['ph', 'pH', 'pH', 'gray'],
-  ['nitrogen', 'Nitrogen', 'mg/kg', 'green'],
-  ['phosphorus', 'Phosphorus', 'mg/kg', 'green'],
-  ['potassium', 'Potassium', 'mg/kg', 'green'],
-];
-
 function SensorsContent() {
   const { latest, history, loading, refetch } = useSensors(24);
   const [selectedMetric, setSelectedMetric] = useState('soil_moisture');
+  const [showMore, setShowMore] = useState(false);
+
+  const primaryMetrics = [
+    ['soil_moisture', 'Soil Moisture', '%', 'green'],
+    ['temperature', 'Temperature', '°C', 'warn'],
+    ['humidity', 'Humidity', '%', 'water'],
+    ['ph', 'pH', 'pH', 'gray'],
+  ];
+
+  const extraMetrics = [
+    ['nitrogen', 'Nitrogen', 'mg/kg', 'green'],
+    ['phosphorus', 'Phosphorus', 'mg/kg', 'green'],
+    ['potassium', 'Potassium', 'mg/kg', 'green'],
+  ];
+
+  const allMetrics = [
+    ['soil_moisture', 'Soil Moisture', '%', 'green'],
+    ['temperature', 'Temperature', '°C', 'warn'],
+    ['humidity', 'Humidity', '%', 'water'],
+    ['ph', 'pH', 'pH', 'gray'],
+    ['nitrogen', 'Nitrogen', 'mg/kg', 'green'],
+    ['phosphorus', 'Phosphorus', 'mg/kg', 'green'],
+    ['potassium', 'Potassium', 'mg/kg', 'green'],
+  ];
 
   useEffect(() => {
     const id = setInterval(refetch, 30000);
@@ -31,7 +45,7 @@ function SensorsContent() {
   return (
     <>
       <div className="grid gap-4 md:grid-cols-4">
-        {metrics.map(([key, label, unit, tone]) => (
+        {primaryMetrics.map(([key, label, unit, tone]) => (
           <SensorCard
             key={key}
             label={label}
@@ -43,17 +57,49 @@ function SensorsContent() {
         ))}
       </div>
 
+      <div>
+        <button
+          className="btn btn-ghost"
+          style={{ fontSize: 13, marginBottom: showMore ? 12 : 0 }}
+          onClick={() => setShowMore(s => !s)}
+        >
+          {showMore ? '▲ Hide NPK readings' : '▼ Show NPK readings (N, P, K)'}
+        </button>
+        {showMore && (
+          <div className="grid gap-4 md:grid-cols-3">
+            {extraMetrics.map(([key, label, unit, tone]) => (
+              <SensorCard
+                key={key}
+                label={label}
+                value={latest?.[key]}
+                unit={unit}
+                tone={tone}
+                loading={loading}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+
       <div className="card" style={{ padding: '18px 20px' }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
           <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-primary)', margin: 0 }}>24h Sensor History</h2>
-          <select className="input" style={{ maxWidth: 180 }} value={selectedMetric} onChange={e => setSelectedMetric(e.target.value)}>
-            {metrics.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+          <select
+            className="input"
+            style={{ maxWidth: 180 }}
+            value={selectedMetric}
+            onChange={e => setSelectedMetric(e.target.value)}
+          >
+            {allMetrics.map(([key, label]) => (
+              <option key={key} value={key}>{label}</option>
+            ))}
           </select>
         </div>
         <SensorChart data={history} metric={selectedMetric} />
-        <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '12px 0 0' }}>Last updated: {new Date().toLocaleTimeString()}</p>
+        <p style={{ fontSize: 12, color: 'var(--text-muted)', margin: '12px 0 0' }}>
+          Last updated: {new Date().toLocaleTimeString()}
+        </p>
       </div>
-
     </>
   );
 }
