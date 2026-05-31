@@ -18,7 +18,10 @@ export default function Navbar() {
   const isPublic = ['/', '/login', '/signup'].includes(pathname);
 
   return (
-    <header style={{ background: '#fff', borderBottom: '1px solid var(--border)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }} className="fixed left-0 right-0 top-0 z-50">
+    <header
+      style={{ background: '#fff', borderBottom: '1px solid var(--border)', boxShadow: '0 1px 4px rgba(0,0,0,0.05)' }}
+      className="fixed left-0 right-0 top-0 z-50"
+    >
       <div className="mx-auto flex min-h-[68px] w-[min(1180px,calc(100%-32px))] flex-wrap items-center justify-between gap-3 py-2">
 
         <NavLink to="/" className="flex items-center gap-2" style={{ textDecoration: 'none' }}>
@@ -38,7 +41,7 @@ export default function Navbar() {
                 to={to}
                 style={({ isActive }) => ({
                   display: 'inline-flex', alignItems: 'center', gap: 6,
-                  padding: '6px 12px', borderRadius: 8, fontSize: 13, fontWeight: 600,
+                  padding: '6px 10px', borderRadius: 8, fontSize: 13, fontWeight: 600,
                   textDecoration: 'none', transition: 'all 0.15s',
                   background: isActive ? 'var(--accent-primary-tint)' : 'transparent',
                   color: isActive ? 'var(--accent-primary-dark)' : 'var(--text-secondary)',
@@ -47,7 +50,7 @@ export default function Navbar() {
                 title={label}
               >
                 <Icon size={15} />
-                <span className="hidden lg:inline">{label}</span>
+                <span className="hidden xl:inline">{label}</span>
               </NavLink>
             ))}
           </nav>
@@ -55,11 +58,18 @@ export default function Navbar() {
 
         {!isPublic && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div className="hidden md:flex items-center gap-2" style={{ fontSize: 12, color: 'var(--text-muted)', background: 'var(--accent-primary-tint)', padding: '5px 12px', borderRadius: 20, border: '1px solid var(--border-strong)' }}>
+            <div
+              className="hidden md:flex items-center gap-2"
+              style={{ fontSize: 12, color: 'var(--text-muted)', background: 'var(--accent-primary-tint)', padding: '5px 12px', borderRadius: 20, border: '1px solid var(--border-strong)' }}
+            >
               <span className="pulse-dot" />
               ESP32 online
             </div>
-            <NavLink to="/profile" style={{ padding: 8, borderRadius: 8, display: 'grid', placeItems: 'center', color: 'var(--text-muted)', border: '1px solid var(--border)' }}>
+            <NavLink
+              to="/profile"
+              style={{ padding: 8, borderRadius: 8, display: 'grid', placeItems: 'center', color: 'var(--text-muted)', border: '1px solid var(--border)' }}
+              title="Profile"
+            >
               <User size={16} />
             </NavLink>
           </div>

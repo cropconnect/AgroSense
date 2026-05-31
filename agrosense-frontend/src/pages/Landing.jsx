@@ -33,8 +33,8 @@ export default function Landing() {
                 <Link to="/signup" className="btn btn-primary" style={{ fontSize: 15, padding: '0 22px', minHeight: 46 }}>
                   Get Started Free <ArrowRight size={17} />
                 </Link>
-                <Link to="/dashboard" className="btn btn-ghost" style={{ fontSize: 15, padding: '0 22px', minHeight: 46 }}>
-                  Live Demo
+                <Link to="/signup" className="btn btn-ghost" style={{ fontSize: 15, padding: '0 22px', minHeight: 46 }}>
+                  See How It Works
                 </Link>
               </div>
               <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' }}>
